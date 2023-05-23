@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  list:
+    container_name: react-intern
+    build: .
+  nginx:
+    depends_on:
+      - list
+    restart: always
+    image: hieu460/blameo-intern
+    # build: 
+    #   dockerfile: Dockerfile
+    #   context: ./
+    ports:
+      - "80:80"
+  mysqldb:
+    container_name: dkmysql
+    image: khanhtrinh2401/springdocker-jwt
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=last
+    ports:
+      - "3307:3306" #<local-port>:<container-port>
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/1.sql
+      - db:/var/lib/mysql
+  app:
+    depends_on:
+      - mysqldb
+    image: springdocker-jwt
+    build: .
+    restart: always
+    ports:
+      - "8080:8080" #<local-port>:<container-port>
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/last?autoReconnect=true&failOverReadOnly=false&maxReconnects=10
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    stdin_open: true
+    tty: true
+volumes:
+  db:

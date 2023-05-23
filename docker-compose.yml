@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  db:
+    container_name: mysql
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=huy123
+      - MYSQL_HOST=db
+    ports:
+      - "3333:3306"
+    volumes:
+      - /path/on/host:/var/lib/mysql
+    networks:
+      - springboot-mssql-net
+
+  my-app:
+    container_name: springboot
+#    image: huynqph26782/blameo:last
+    build:
+      context: ./demo_security
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/dev
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: huy123
+      SPRING_JPA_HIBERNATE.DDL-AUTO: update
+      SPRING_JPA_HIBERNATE_NAMING-STRATEGY: org.hibernate.cfg.ImprovedNamingStrategy
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL5Dialect
+    networks:
+      - springboot-mssql-net
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./blameo-list
+    ports:
+      - "80:80"
+    networks:
+      - springboot-mssql-net
+
+networks:
+  springboot-mssql-net:
+
+volumes:
+  data:
